@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Armazém Fifo",
   description: "Mercadinho de produtos com vencimento próximo",
+  icons: {
+    icon: "/favicon-cart.png",
+    shortcut: "/favicon-cart.png",
+    apple: "/favicon-cart.png",
+  },
 };
 
 export default function RootLayout({
