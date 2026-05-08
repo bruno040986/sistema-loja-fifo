@@ -61,7 +61,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
                 className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 bg-white rounded-lg focus:outline-none focus:ring-green-500 focus:border-green-500 focus:z-10 sm:text-sm mt-1"
-                placeholder="admin@armazemfifo.com"
+                placeholder="Informe o endereço de e-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
