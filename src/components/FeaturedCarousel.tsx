@@ -12,24 +12,20 @@ export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
 
   const scrollAmountRef = useRef(344);
 
-  // Cache scroll amount on mount and resize to avoid forced reflow
+  // Calculate scroll amount from CSS values — no DOM reads, no forced reflow
   useEffect(() => {
-    const measure = () => {
-      if (!scrollRef.current) return;
-      const firstItem = scrollRef.current.querySelector('.carousel-item') as HTMLElement;
-      if (!firstItem) return;
-      const gap = 24; // matches gap-6 (1.5rem = 24px)
-      scrollAmountRef.current = firstItem.offsetWidth + gap;
+    const calculate = () => {
+      const vw = window.innerWidth;
+      const isMobile = vw < 640; // Tailwind sm breakpoint
+      const itemWidth = isMobile ? Math.min(300, vw * 0.85) : 320;
+      const gap = isMobile ? 16 : 24; // gap-4 (16px) mobile, gap-6 (24px) desktop
+      scrollAmountRef.current = itemWidth + gap;
     };
 
-    // Measure after paint
-    const raf = requestAnimationFrame(measure);
-    window.addEventListener('resize', measure);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', measure);
-    };
-  }, [items.length]);
+    calculate();
+    window.addEventListener('resize', calculate);
+    return () => window.removeEventListener('resize', calculate);
+  }, []);
 
   const scrollNext = useCallback(() => {
     if (!scrollRef.current) return;
