@@ -70,6 +70,7 @@ export function CartDrawer() {
           <button 
             onClick={toggleDrawer}
             className="text-gray-400 hover:text-white transition-colors p-1"
+            aria-label="Fechar carrinho"
           >
             <X size={24} />
           </button>
@@ -115,6 +116,7 @@ export function CartDrawer() {
                         <button 
                           onClick={() => removeItem(item.id)}
                           className="text-zinc-500 hover:text-red-500 transition-colors"
+                          aria-label={`Remover ${item.name} do carrinho`}
                         >
                           <Trash2 size={16} />
                         </button>
