@@ -24,13 +24,18 @@ type ProductCardProps = {
 export function ProductCard({ item }: ProductCardProps) {
   const { addItem, items } = useCartStore();
   
-  // Calculate days to expiration
-  const today = new Date();
-  const expDate = new Date(item.expirationDate);
-  const diffTime = Math.abs(expDate.getTime() - today.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // Calculate days to expiration using date-only (no time) to avoid hydration mismatch
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const expStr = new Date(item.expirationDate).toISOString().slice(0, 10);
+  const todayMs = new Date(todayStr).getTime();
+  const expMs = new Date(expStr).getTime();
+  const diffDays = Math.ceil(Math.abs(expMs - todayMs) / (1000 * 60 * 60 * 24));
   
   const isExpiringSoon = diffDays <= 7;
+
+  // Format expiration date manually to avoid locale differences between server/client
+  const expDate = new Date(item.expirationDate);
+  const formattedExpDate = `${String(expDate.getUTCDate()).padStart(2, '0')}/${String(expDate.getUTCMonth() + 1).padStart(2, '0')}/${expDate.getUTCFullYear()}`;
   
   // Check if item is already in cart to show current quantity added
   // Note: we track cart items by Batch ID now
@@ -73,7 +78,7 @@ export function ProductCard({ item }: ProductCardProps) {
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
           {isExpiringSoon && (
-            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-md">
+            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1 shadow-md" suppressHydrationWarning>
               <Clock size={12} />
               Vence em {diffDays} {diffDays === 1 ? 'dia' : 'dias'}
             </span>
@@ -91,8 +96,8 @@ export function ProductCard({ item }: ProductCardProps) {
         </h3>
         
         {/* Expiration explicit text */}
-        <p className="text-xs font-semibold text-red-400 mb-2">
-          Válido até: {new Date(item.expirationDate).toLocaleDateString('pt-BR')}
+        <p className="text-xs font-semibold text-red-400 mb-2" suppressHydrationWarning>
+          Válido até: {formattedExpDate}
         </p>
 
         {item.description && (
