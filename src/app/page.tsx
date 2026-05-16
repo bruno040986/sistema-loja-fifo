@@ -211,7 +211,7 @@ export default async function Home() {
                   { title: "Praticidade", desc: "Valorizamos o seu tempo. Com nosso sistema de pedido online e retirada rápida, facilitamos o seu dia a dia." }
                 ].map((val, idx) => (
                   <div key={idx} className="bg-black border border-zinc-800 p-6 rounded-2xl hover:border-yellow-500/50 transition-colors">
-                    <h4 className="text-yellow-400 font-bold text-lg mb-2">{val.title}</h4>
+                    <h3 className="text-yellow-400 font-bold text-lg mb-2">{val.title}</h3>
                     <p className="text-zinc-500 text-sm leading-relaxed text-justify">{val.desc}</p>
                   </div>
                 ))}
