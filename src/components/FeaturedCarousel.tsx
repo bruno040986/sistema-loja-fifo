@@ -10,15 +10,26 @@ export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
   const [showArrows, setShowArrows] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const getScrollAmount = useCallback(() => {
-    if (!scrollRef.current) return 344;
-    const firstItem = scrollRef.current.querySelector('.carousel-item') as HTMLElement;
-    if (!firstItem) return 344;
-    // Use computed width of the first item + gap
-    const style = window.getComputedStyle(scrollRef.current.children[0]);
-    const gap = parseFloat(style.columnGap) || 24;
-    return firstItem.offsetWidth + gap;
-  }, []);
+  const scrollAmountRef = useRef(344);
+
+  // Cache scroll amount on mount and resize to avoid forced reflow
+  useEffect(() => {
+    const measure = () => {
+      if (!scrollRef.current) return;
+      const firstItem = scrollRef.current.querySelector('.carousel-item') as HTMLElement;
+      if (!firstItem) return;
+      const gap = 24; // matches gap-6 (1.5rem = 24px)
+      scrollAmountRef.current = firstItem.offsetWidth + gap;
+    };
+
+    // Measure after paint
+    const raf = requestAnimationFrame(measure);
+    window.addEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', measure);
+    };
+  }, [items.length]);
 
   const scrollNext = useCallback(() => {
     if (!scrollRef.current) return;
@@ -28,10 +39,9 @@ export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
     if (scrollLeft + clientWidth >= scrollWidth - 20) {
       scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
     } else {
-      const amount = getScrollAmount();
-      scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+      scrollRef.current.scrollBy({ left: scrollAmountRef.current, behavior: "smooth" });
     }
-  }, [getScrollAmount]);
+  }, []);
 
   // Auto-scroll effect - always runs, only pauses on hover
   useEffect(() => {
@@ -59,7 +69,7 @@ export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    const amount = getScrollAmount() * 2; // Scroll 2 items at a time manually
+    const amount = scrollAmountRef.current * 2; // Scroll 2 items at a time manually
     scrollRef.current.scrollBy({
       left: direction === "left" ? -amount : amount,
       behavior: "smooth"
