@@ -17,9 +17,9 @@ export const metadata: Metadata = {
   title: "Armazém Fifo",
   description: "Mercadinho de produtos com vencimento próximo",
   icons: {
-    icon: "/favicon-cart.png",
-    shortcut: "/favicon-cart.png",
-    apple: "/favicon-cart.png",
+    icon: "/favicon-bemdigital.png",
+    shortcut: "/favicon-bemdigital.png",
+    apple: "/favicon-bemdigital.png",
   },
 };
 

@@ -1,42 +1,79 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { ProductCard, StoreItem } from "./ProductCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const isHoveredRef = useRef(false);
+  const [showArrows, setShowArrows] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-scroll effect
+  const getScrollAmount = useCallback(() => {
+    if (!scrollRef.current) return 344;
+    const firstItem = scrollRef.current.querySelector('.carousel-item') as HTMLElement;
+    if (!firstItem) return 344;
+    // Use computed width of the first item + gap
+    const style = window.getComputedStyle(scrollRef.current.children[0]);
+    const gap = parseFloat(style.columnGap) || 24;
+    return firstItem.offsetWidth + gap;
+  }, []);
+
+  const scrollNext = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+    
+    // If we reached the end, scroll back to the beginning
+    if (scrollLeft + clientWidth >= scrollWidth - 20) {
+      scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    } else {
+      const amount = getScrollAmount();
+      scrollRef.current.scrollBy({ left: amount, behavior: "smooth" });
+    }
+  }, [getScrollAmount]);
+
+  // Auto-scroll effect - always runs, only pauses on hover
   useEffect(() => {
-    if (!scrollRef.current || isHovered || items.length <= 1) return;
+    if (items.length <= 1) return;
 
-    const interval = setInterval(() => {
-      if (scrollRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-        
-        // If we reached the end, scroll back to the beginning
-        if (scrollLeft + clientWidth >= scrollWidth - 10) {
-          scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          // Scroll to the next item (approx 320px + 24px gap = 344px)
-          scrollRef.current.scrollBy({ left: 344, behavior: "smooth" });
+    const startAutoScroll = () => {
+      // Clear any existing interval
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      
+      intervalRef.current = setInterval(() => {
+        if (!isHoveredRef.current && scrollRef.current) {
+          scrollNext();
         }
-      }
-    }, 4000); // 4 seconds delay
+      }, 4000);
+    };
 
-    return () => clearInterval(interval);
-  }, [isHovered, items.length]);
+    // Start after a short delay to ensure DOM is ready
+    const timeout = setTimeout(startAutoScroll, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [items.length, scrollNext]);
 
   const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = 344 * 2; // Scroll 2 items at a time manually
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth"
-      });
-    }
+    if (!scrollRef.current) return;
+    const amount = getScrollAmount() * 2; // Scroll 2 items at a time manually
+    scrollRef.current.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth"
+    });
+  };
+
+  const handleMouseEnter = () => {
+    isHoveredRef.current = true;
+    setShowArrows(true);
+  };
+
+  const handleMouseLeave = () => {
+    isHoveredRef.current = false;
+    setShowArrows(false);
   };
 
   if (items.length === 0) {
@@ -53,14 +90,14 @@ export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
   return (
     <div 
       className="relative max-w-full mx-auto"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Left Arrow */}
       {items.length > 3 && (
         <button
           onClick={() => scroll("left")}
-          className={`hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-yellow-400 text-black p-3 rounded-full shadow-xl shadow-black/50 hover:bg-yellow-500 hover:scale-110 transition-all ${isHovered ? 'opacity-100' : 'opacity-0'} disabled:opacity-0`}
+          className={`hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-yellow-400 text-black p-3 rounded-full shadow-xl shadow-black/50 hover:bg-yellow-500 hover:scale-110 transition-all ${showArrows ? 'opacity-100' : 'opacity-0'} disabled:opacity-0`}
           aria-label="Scroll Left"
         >
           <ChevronLeft size={24} className="ml-[-2px]" />
@@ -70,12 +107,12 @@ export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
       {/* Scroll Container */}
       <div 
         ref={scrollRef}
-        className="w-full overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide px-4 sm:px-6 lg:px-8" 
+        className="w-full overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide" 
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className="flex gap-6 w-max mx-auto max-w-[100vw] sm:max-w-none">
+        <div className="flex gap-4 sm:gap-6 w-max px-[calc((100vw-min(300px,85vw))/2)] sm:px-6 lg:px-8">
           {items.map((item) => (
-            <div key={item.id} className="w-[300px] sm:w-[320px] snap-center shrink-0">
+            <div key={item.id} className="carousel-item w-[min(300px,85vw)] sm:w-[320px] snap-center shrink-0">
               <ProductCard item={item} />
             </div>
           ))}
@@ -86,7 +123,7 @@ export function FeaturedCarousel({ items }: { items: StoreItem[] }) {
       {items.length > 3 && (
         <button
           onClick={() => scroll("right")}
-          className={`hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-yellow-400 text-black p-3 rounded-full shadow-xl shadow-black/50 hover:bg-yellow-500 hover:scale-110 transition-all ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+          className={`hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-yellow-400 text-black p-3 rounded-full shadow-xl shadow-black/50 hover:bg-yellow-500 hover:scale-110 transition-all ${showArrows ? 'opacity-100' : 'opacity-0'}`}
           aria-label="Scroll Right"
         >
           <ChevronRight size={24} className="mr-[-2px]" />
