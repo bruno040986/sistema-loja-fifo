@@ -30,6 +30,10 @@ export default function RootLayout({
       className={`${geistSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="preconnect" href="https://assets.instabuy.app.br" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://assets.instabuy.app.br" />
+      </head>
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <NextAuthProvider>
           {children}
