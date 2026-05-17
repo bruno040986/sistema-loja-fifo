@@ -1,7 +1,6 @@
 import { ProductCard, StoreItem } from '@/components/ProductCard';
 import { Header } from '@/components/Header';
 import { prisma } from '@/lib/prisma';
-import { CartDrawer } from '@/components/CartDrawer';
 import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 
@@ -51,7 +50,6 @@ export default async function ProdutosCatalogPage() {
   return (
     <div className="min-h-screen bg-black flex flex-col font-sans">
       <Header />
-      <CartDrawer />
 
       <main className="flex-1 max-w-7xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8">
         

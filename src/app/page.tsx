@@ -1,9 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/Header";
-import { CartDrawer } from "@/components/CartDrawer";
-import { ProductCard } from "@/components/ProductCard";
-import { FeaturedCarousel } from "@/components/FeaturedCarousel";
 import { Footer } from "@/components/Footer";
+import dynamic from "next/dynamic";
+
+const FeaturedCarousel = dynamic(() => import("@/components/FeaturedCarousel").then(mod => ({ default: mod.FeaturedCarousel })), {
+  loading: () => (
+    <div className="w-full overflow-hidden pb-8">
+      <div className="flex gap-4 sm:gap-6 px-6 lg:px-8">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="w-[min(300px,85vw)] sm:w-[320px] shrink-0 bg-zinc-900 rounded-2xl border border-zinc-800 h-[460px] animate-pulse" />
+        ))}
+      </div>
+    </div>
+  ),
+});
 
 // Revalidate this page every 60 seconds or make it dynamic
 export const revalidate = 60;
@@ -59,7 +69,6 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-black flex flex-col font-sans">
       <Header />
-      <CartDrawer />
 
       <main className="flex-1">
         {/* Hero Section */}

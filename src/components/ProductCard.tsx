@@ -2,6 +2,7 @@
 
 import { useCartStore } from "@/store/cartStore";
 import { ShoppingCart, Clock } from "lucide-react";
+import Image from "next/image";
 
 export type StoreItem = {
   id: string; // Batch ID
@@ -63,13 +64,14 @@ export function ProductCard({ item }: ProductCardProps) {
       {/* Image Section */}
       <div className="relative h-48 bg-zinc-800 overflow-hidden flex items-center justify-center p-4">
         {item.imageUrl ? (
-          <img 
+          <Image 
             src={item.imageUrl} 
             alt={item.name}
+            width={300}
+            height={192}
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x400?text=Sem+Imagem";
-            }}
+            loading="lazy"
+            sizes="(max-width: 640px) 85vw, 320px"
           />
         ) : (
           <div className="text-zinc-600 font-medium">Sem Imagem</div>
